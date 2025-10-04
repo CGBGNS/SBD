@@ -1,0 +1,370 @@
+
+  
+  <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta http-equiv="refresh" content="90"> <!-- Refresco cada 90 segs-->
+      <title>Visualizador de KPIs por cola</title>
+      <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+      <style>
+      table.redTable {
+      border: 1px solid #03010C;
+      background-color: #EEEEEE;
+      width: 70%;
+      text-align: left;
+      border-collapse: collapse;
+    }
+    table.redTable td, table.redTable th {
+      border: 1px solid #AAAAAA;
+      padding: 3px 2px;
+    }
+    table.redTable tbody td {
+      font-size: 13px;
+    }
+    table.redTable tr:nth-child(even) {
+      background: #F5D6D6;
+    }
+    table.redTable thead {
+      background: #F20F21;
+      background: -moz-linear-gradient(top, #f54b58 0%, #f32737 66%, #F20F21 100%);
+      background: -webkit-linear-gradient(top, #f54b58 0%, #f32737 66%, #F20F21 100%);
+      background: linear-gradient(to bottom, #f54b58 0%, #f32737 66%, #F20F21 100%);
+      border-bottom: 2px solid #444444;
+    }
+    table.redTable thead th {
+      font-size: 15px;
+      font-weight: bold;
+      color: #FFFFFF;
+      border-left: 2px solid #D0E4F5;
+    }
+    table.redTable thead th:first-child {
+      border-left: none;
+    }
+    
+    table.redTable tfoot {
+      font-size: 14px;
+      font-weight: bold;
+      color: #FFFFFF;
+      background: #D0E4F5;
+      background: -moz-linear-gradient(top, #dcebf7 0%, #d4e6f6 66%, #D0E4F5 100%);
+      background: -webkit-linear-gradient(top, #dcebf7 0%, #d4e6f6 66%, #D0E4F5 100%);
+      background: linear-gradient(to bottom, #dcebf7 0%, #d4e6f6 66%, #D0E4F5 100%);
+      border-top: 2px solid #444444;
+    }
+    table.redTable tfoot td {
+      font-size: 14px;
+    }
+    table.redTable tfoot .links {
+      text-align: right;
+    }
+    table.redTable tfoot .links a{
+      display: inline-block;
+      background: #1C6EA4;
+      color: #FFFFFF;
+      padding: 2px 8px;
+      border-radius: 5px;
+    }
+    
+    
+    
+      </style>
+    </head>
+    <body>
+    <center>
+    <h1>Visualizador de Skills por campaña</h1>
+    <button onclick="loadData()">Refrescar Datos</button>
+    <br>
+    <table class="redTable">
+    <tbody id="tabla-container"></tbody>
+    </table>
+    <!--button onclick="refreshData()">Refrescar Datos</button-->
+    
+    <button onclick="loadData()">Refrescar Datos</button>
+    <script>
+      //v1
+      const CLIENT_ID = 'd34e8b68-b1af-4cb5-a9c8-05ff97a5211c'; 
+      const ENVIRONMENT = 'mypurecloud.de';
+      const REDIRECT_URI = 'https://CGBGNS.github.io/SBD/index.html';
+      var gToken = getParameterByName('access_token');
+// Set your campaign IDs here (use the full GUIDs in real calls)
+
+
+  function loadData() {
+    const CAMPAIGN_ID_1 = '969679db-2295-4fa4-b8af-03fe8ff4b760'; // example
+  const CAMPAIGN_ID_2 = 'a5cd2682-6117-4071-9c2d-27e446c9f771'; // example
+  const BASE_URL = 'https://api.mypurecloud.de';
+    const p1 = fetchSkillCombinations(CAMPAIGN_ID_1);
+    const p2 = fetchSkillCombinations(CAMPAIGN_ID_2);
+
+    // Run in parallel; proceed even if one fails
+    Promise.allSettled([p1, p2]).then(([r1, r2]) => {
+      const data1stAPI  = r1.status === 'fulfilled' ? coerceToList(r1.value) : [];
+      const data2ndAPI  = r2.status === 'fulfilled' ? coerceToList(r2.value) : [];
+
+      // Optional: log errors
+      if (r1.status === 'rejected') console.warn('First request failed:', r1.reason);
+      if (r2.status === 'rejected') console.warn('Second request failed:', r2.reason);
+
+      // Concatenate and display
+      const merged = data1stAPI.concat(data2ndAPI);
+      displayData(merged);
+    });
+  }
+
+  // Single function to call the endpoint for a campaign
+  function fetchSkillCombinations(campaignId) {
+    return $.ajax({
+      url: `${BASE_URL}/platform/api/v2/outbound/campaigns/${encodeURIComponent(campaignId)}/skillcombinations`,
+      method: 'GET',
+      dataType: 'json',
+      headers: {
+        'Authorization': 'Bearer ' + gToken,
+        'Accept': 'application/json'
+      }
+    }).then(
+      data => data,
+      jqXHR => {
+        // Turn jQuery error into a rejected Promise with a helpful message
+        const msg = (jqXHR.responseJSON && (jqXHR.responseJSON.message || jqXHR.responseJSON.error)) || jqXHR.statusText || 'Request failed';
+        return Promise.reject(new Error(`HTTP ${jqXHR.status}: ${msg}`));
+      }
+    );
+  }
+
+  // Normalize different response shapes into a flat array
+  function coerceToList(payload) {
+    if (Array.isArray(payload)) return payload;
+    if (payload && typeof payload === 'object') {
+      if (Array.isArray(payload.entities)) return payload.entities;
+      if (Array.isArray(payload.skillCombinations)) return payload.skillCombinations;
+      if (Array.isArray(payload.items)) return payload.items;
+      return [payload];
+    }
+    return [];
+  }
+
+  // Example renderer — replace with your real UI logic
+  function displayData(rows) {
+    console.log('Merged rows:', rows);
+    // e.g., build your table here
+    // renderTable(rows)
+  }
+    
+    
+   function displayData(rows) {
+    const container = document.getElementById('tabla-container');
+    if (!container) {
+      console.warn('Missing #tabla-container element.');
+      return;
+    }
+
+    if (!Array.isArray(rows) || rows.length === 0) {
+      container.innerHTML = '<p>No data.</p>';
+      return;
+    }
+
+    // Group by queueId if available; otherwise by the skill-combination label
+    const groups = new Map();
+
+    for (const r of rows) {
+      const queueId =
+        r.queueId ||
+        (r.queue && (r.queue.id || r.queue.queueId)) ||
+        r.queueID ||
+        r.queue_id ||
+        null;
+
+      const comboLabel = buildSkillCombinationLabel(r);
+      const groupKey = queueId ? `q:${queueId}` : `c:${comboLabel}`;
+
+      const counts = extractCounts(r); // { totalCount, remainingCount }
+
+      const current = groups.get(groupKey) || {
+        queueId: queueId || '',
+        label: comboLabel,
+        totalCount: 0,
+        remainingCount: 0,
+      };
+
+      if (isFinite(counts.totalCount)) current.totalCount += counts.totalCount;
+      if (isFinite(counts.remainingCount)) current.remainingCount += counts.remainingCount;
+
+      groups.set(groupKey, current);
+    }
+
+    const sorted = Array.from(groups.values()).sort((a, b) =>
+      a.label.localeCompare(b.label)
+    );
+
+    const tableHtml = `
+      <table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;width:100%;max-width:100%;">
+        <thead>
+          <tr>
+            <th>Skill Combination</th>
+            <th>totalCount</th>
+            <th>remainingCount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${sorted
+            .map(row => {
+              const SkillCombination = escapeHtml(
+                row.queueId ? `[${row.queueId}] ${row.label}` : row.label
+              );
+              const totalCount = isFinite(row.totalCount) ? row.totalCount : '—';
+              const remainingCount = isFinite(row.remainingCount) ? row.remainingCount : '—';
+              return `
+                <tr>
+                  <td>${SkillCombination}</td>
+                  <td>${totalCount}</td>
+                  <td>${remainingCount}</td>
+                </tr>`;
+            })
+            .join('')}
+        </tbody>
+      </table>
+    `;
+
+    container.innerHTML = tableHtml;
+  }
+
+  // --- Helpers ---
+
+  // Try to build a readable label for the skill combination
+  function buildSkillCombinationLabel(item) {
+    // Common spots to find the combination
+    const sc =
+      item.skillCombination ||
+      item.skills ||
+      item.skillIds ||
+      (item.combination && item.combination.skills) ||
+      null;
+
+    // Language (optional)
+    const lang =
+      (item.skillCombination && (item.skillCombination.language || item.skillCombination.languageId)) ||
+      item.language ||
+      item.languageId ||
+      null;
+
+    // Convert the combination to a nice string label
+    const combo = stringifyCombo(sc);
+    const langPart = lang ? ` | lang: ${lang}` : '';
+    if (combo) return combo + langPart;
+
+    // Last-resort label from a few common identifiers
+    const idLike = item.id || item.combinationId || item.combinationID || '';
+    if (idLike) return `Combination ${idLike}${langPart}`;
+
+    // Fallback: minimal JSON snapshot
+    try {
+      return JSON.stringify(item).slice(0, 120) + '…';
+    } catch {
+      return 'Combination';
+    }
+  }
+
+  // Turn various skill structures into a readable comma-separated string
+  function stringifyCombo(sc) {
+    if (!sc) return '';
+    // If it's already an array of strings/ids
+    if (Array.isArray(sc)) return sc.map(simpleVal).join(', ');
+    // If it's an object, look for common arrays inside it
+    if (typeof sc === 'object') {
+      const arr =
+        sc.skills ||
+        sc.skillIds ||
+        sc.skillIDs ||
+        sc.skill_names ||
+        sc.skillNames ||
+        null;
+      if (Array.isArray(arr)) return arr.map(simpleVal).join(', ');
+
+      // As a generic fallback, grab any array-looking values from the object
+      for (const [k, v] of Object.entries(sc)) {
+        if (Array.isArray(v) && v.length && v.every(isPrimitiveish)) {
+          return v.map(simpleVal).join(', ');
+        }
+      }
+    }
+    return '';
+  }
+
+  function simpleVal(x) {
+    if (x == null) return '';
+    if (typeof x === 'object') {
+      // If object has a name or id, prefer that
+      return x.name || x.id || JSON.stringify(x);
+    }
+    return String(x);
+  }
+
+  function isPrimitiveish(v) {
+    const t = typeof v;
+    return v == null || t === 'string' || t === 'number' || t === 'boolean';
+  }
+
+  // Try to find counts across a few common names
+  function extractCounts(item) {
+    // Often the counts might be top-level, or nested
+    const candidates = [item, item.counts, item.metrics, item.stats].filter(Boolean);
+
+    const pick = (keys) => {
+      for (const src of candidates) {
+        for (const k of keys) {
+          if (src && Object.prototype.hasOwnProperty.call(src, k) && isFiniteNumber(src[k])) {
+            return Number(src[k]);
+          }
+        }
+      }
+      return NaN;
+    };
+
+    return {
+      totalCount: pick(['totalCount', 'total', 'count', 'size', 'agentCount']),
+      remainingCount: pick(['remainingCount', 'remaining', 'availableCount'])
+    };
+  }
+
+  function isFiniteNumber(n) {
+    return typeof n === 'number' && isFinite(n);
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+
+
+      function refreshData() {
+        loadData();
+      }
+    
+    // Check if there is a hash in the URL
+    if (window.location.hash) {
+      const token = getParameterByName('access_token');
+      console.log("token" + token);
+      loadData();
+    } else {
+      console.log("REDIRECT_URI: " + REDIRECT_URI);
+      const queryStringData = {
+        response_type: "token",
+        client_id: CLIENT_ID,
+        redirect_uri: REDIRECT_URI
+      };
+      window.location.replace(`https://login.${ENVIRONMENT}/oauth/authorize?` + jQuery.param(queryStringData));
+    }
+    
+    
+ 
+    
+    </script>
+    </center>
+    </body>
+    </html>
