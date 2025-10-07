@@ -88,13 +88,16 @@
       const REDIRECT_URI = 'https://CGBGNS.github.io/SBD/index.html';
       var gToken = getParameterByName('access_token');
 // Set your campaign IDs here (use the full GUIDs in real calls)
-  const CAMPAIGN_ID_1 = '969679db-2295-4fa4-b8af-03fe8ff4b760'; // example
-  const CAMPAIGN_ID_2 = 'a5cd2682-6117-4071-9c2d-27e446c9f771'; // example
-  const BASE_URL = 'https://api.mypurecloud.de';
+
 
   function loadData() {
+    const CAMPAIGN_ID_1 = '969679db-2295-4fa4-b8af-03fe8ff4b760'; // example
+  const CAMPAIGN_ID_2 = 'a5cd2682-6117-4071-9c2d-27e446c9f771'; // example
+  const BASE_URL = 'https://api.mypurecloud.de';
     const p1 = fetchSkillCombinations(CAMPAIGN_ID_1);
     const p2 = fetchSkillCombinations(CAMPAIGN_ID_2);
+
+console.log("starting load data");
 
     // Run in parallel; proceed even if one fails
     Promise.allSettled([p1, p2]).then(([r1, r2]) => {
@@ -141,18 +144,12 @@
       return [payload];
     }
     return [];
-  }
-
-  // Example renderer — replace with your real UI logic
-  function displayData(rows) {
-    console.log('Merged rows:', rows);
-    // e.g., build your table here
-    // renderTable(rows)
-  }
-    
+  }  
     
    function displayData(rows) {
     const container = document.getElementById('tabla-container');
+    console.log("displaying data");
+
     if (!container) {
       console.warn('Missing #tabla-container element.');
       return;
