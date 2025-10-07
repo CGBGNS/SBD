@@ -128,7 +128,7 @@ console.log("starting load data");
   // Single function to call the endpoint for a campaign
   function fetchSkillCombinations(campaignId) {
     return $.ajax({
-      url: `${BASE_URL}/platform/api/v2/outbound/campaigns/${encodeURIComponent(campaignId)}/skillcombinations`,
+      url: `https://api.mypurecloud.de/platform/api/v2/outbound/campaigns/${encodeURIComponent(campaignId)}/skillcombinations`,
       method: 'GET',
       dataType: 'json',
       headers: {
@@ -375,4 +375,5 @@ console.log("starting load data");
     </center>
     </body>
     </html>
+
 
