@@ -97,6 +97,8 @@
     const p1 = fetchSkillCombinations(CAMPAIGN_ID_1);
     const p2 = fetchSkillCombinations(CAMPAIGN_ID_2);
 
+console.log("starting load data");
+
     // Run in parallel; proceed even if one fails
     Promise.allSettled([p1, p2]).then(([r1, r2]) => {
       const data1stAPI  = r1.status === 'fulfilled' ? coerceToList(r1.value) : [];
@@ -142,18 +144,12 @@
       return [payload];
     }
     return [];
-  }
-
-  // Example renderer — replace with your real UI logic
-  function displayData(rows) {
-    console.log('Merged rows:', rows);
-    // e.g., build your table here
-    // renderTable(rows)
-  }
-    
+  }  
     
    function displayData(rows) {
     const container = document.getElementById('tabla-container');
+    console.log("displaying data");
+
     if (!container) {
       console.warn('Missing #tabla-container element.');
       return;
