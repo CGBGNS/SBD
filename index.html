@@ -89,14 +89,25 @@
       var gToken = getParameterByName('access_token');
 // Set your campaign IDs here (use the full GUIDs in real calls)
 
-
+function getParameterByName(name) {
+        name = name.replace(/[\\[]/, "\\[").replace(/[\]]/, "\\]");
+        var regex = new RegExp("[\\#&]" + name + "=([^&#]*)"),
+          results = regex.exec(location.hash);
+        return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+      }
+      
   function loadData() {
     const CAMPAIGN_ID_1 = '969679db-2295-4fa4-b8af-03fe8ff4b760'; // example
   const CAMPAIGN_ID_2 = 'a5cd2682-6117-4071-9c2d-27e446c9f771'; // example
   const BASE_URL = 'https://api.mypurecloud.de';
     const p1 = fetchSkillCombinations(CAMPAIGN_ID_1);
     const p2 = fetchSkillCombinations(CAMPAIGN_ID_2);
-
+function getParameterByName(name) {
+        name = name.replace(/[\\[]/, "\\[").replace(/[\]]/, "\\]");
+        var regex = new RegExp("[\\#&]" + name + "=([^&#]*)"),
+          results = regex.exec(location.hash);
+        return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+      }
 console.log("starting load data");
 
     // Run in parallel; proceed even if one fails
@@ -364,3 +375,4 @@ console.log("starting load data");
     </center>
     </body>
     </html>
+
